@@ -2,6 +2,8 @@ package com.bawp.todoister.util;
 
 import androidx.room.TypeConverter;
 
+import com.bawp.todoister.model.Priority;
+
 import java.util.Date;
 
 public class Converter {
@@ -16,5 +18,9 @@ public class Converter {
         return date == null ? null : date.getTime();
     }
 
+    @TypeConverter
+    public static String fromPriority(Priority priority) {
+        return priority == null ? null : priority.name();
+    }
 
 }
