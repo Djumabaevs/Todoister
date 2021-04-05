@@ -24,7 +24,7 @@ public interface TaskDao {
     LiveData<List<Task>> getTasks();
 
     @Query("SELECT * FROM task_table WHERE task_table.task_id = :id")
-    LiveData<List<Task>> getTask(long id);
+    LiveData<Task> getTask(long id);
 
     @Update
     void update(Task task);
