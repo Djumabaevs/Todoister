@@ -96,14 +96,14 @@ public class BottomSheetFragment extends BottomSheetDialogFragment implements Vi
 
         saveButton.setOnClickListener(view1 -> {
             String task = enterTodo.getText().toString().trim();
-            if(!TextUtils.isEmpty(task) && dueDate != null) {
+            if(!TextUtils.isEmpty(task) && dueDate != null && priority != null) {
                 Task myTask = new Task(task, Priority.HIGH, dueDate,
                         Calendar.getInstance().getTime(), false);
                 if(isEdit) {
                     Task updateTask = sharedViewModel.getSelectedItem().getValue();
                     updateTask.setTask(task);
                     updateTask.setDateCreated(Calendar.getInstance().getTime());
-                    updateTask.setPriority(Priority.HIGH);
+                    updateTask.setPriority(priority);
                     updateTask.setDueDate(dueDate);
                     TaskViewModel.update(updateTask);
                     sharedViewModel.setIsEdit(false);
@@ -128,7 +128,7 @@ public class BottomSheetFragment extends BottomSheetDialogFragment implements Vi
         priorityButton.setOnClickListener(view3 -> {
             Utils.hideSoftKeyboard(view3);
             priorityRadioGroup.setVisibility(
-                    priorityRadioGroup.getWindowVisibility() == View.GONE ? View.VISIBLE : View.GONE);
+                    priorityRadioGroup.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
             priorityRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(RadioGroup group, int checkedId) {
