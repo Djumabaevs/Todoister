@@ -16,8 +16,10 @@ import com.bawp.todoister.model.Priority;
 import com.bawp.todoister.model.SharedViewModel;
 import com.bawp.todoister.model.Task;
 import com.bawp.todoister.model.TaskViewModel;
+import com.bawp.todoister.util.Utils;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.chip.Chip;
+import com.google.android.material.snackbar.Snackbar;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.Group;
@@ -42,6 +44,8 @@ public class BottomSheetFragment extends BottomSheetDialogFragment implements Vi
     private Date dueDate;
     Calendar calendar = Calendar.getInstance();
     private SharedViewModel sharedViewModel;
+    private boolean isEdit;
+    private Priority priority;
 
     public BottomSheetFragment() {
 
@@ -77,6 +81,8 @@ public class BottomSheetFragment extends BottomSheetDialogFragment implements Vi
         super.onResume();
 
         if(sharedViewModel.getSelectedItem().getValue() != null) {
+            isEdit = sharedViewModel.getIsEdit();
+
             Task task = sharedViewModel.getSelectedItem().getValue();
             enterTodo.setText(task.getTask());
             Log.d("My", "onViewCreated: " + task.getTask());
@@ -93,15 +99,58 @@ public class BottomSheetFragment extends BottomSheetDialogFragment implements Vi
             if(!TextUtils.isEmpty(task) && dueDate != null) {
                 Task myTask = new Task(task, Priority.HIGH, dueDate,
                         Calendar.getInstance().getTime(), false);
-
-                TaskViewModel.insert(myTask);
+                if(isEdit) {
+                    Task updateTask = sharedViewModel.getSelectedItem().getValue();
+                    updateTask.setTask(task);
+                    updateTask.setDateCreated(Calendar.getInstance().getTime());
+                    updateTask.setPriority(Priority.HIGH);
+                    updateTask.setDueDate(dueDate);
+                    TaskViewModel.update(updateTask);
+                    sharedViewModel.setIsEdit(false);
+                } else {
+                    TaskViewModel.insert(myTask);
+                }
+                enterTodo.setText("");
+                if(this.isVisible()) {
+                    this.dismiss();
+                }
+            } else {
+                Snackbar.make(saveButton, R.string.empty_field, Snackbar.LENGTH_LONG).show();
             }
         });
 
         calendarButton.setOnClickListener(view2 -> {
             calendarGroup.setVisibility(
                     calendarGroup.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
+            Utils.hideSoftKeyboard(view2);
         });
+
+        priorityButton.setOnClickListener(view3 -> {
+            Utils.hideSoftKeyboard(view3);
+            priorityRadioGroup.setVisibility(
+                    priorityRadioGroup.getWindowVisibility() == View.GONE ? View.VISIBLE : View.GONE);
+            priorityRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(RadioGroup group, int checkedId) {
+                    if(priorityRadioGroup.getVisibility() == View.VISIBLE) {
+                        selectedButtonId = checkedId;
+                        selectedRadioButton = view.findViewById(selectedButtonId);
+                        if(selectedRadioButton.getId() == R.id.radioButton_high) {
+                            priority = Priority.HIGH;
+                        } else if(selectedRadioButton.getId() == R.id.radioButton_med) {
+                            priority = Priority.MEDIUM;
+                        } else if(selectedRadioButton.getId() == R.id.radioButton_low) {
+                            priority = Priority.LOW;
+                        } else {
+                            priority = Priority.LOW;
+                        }
+                    } else  {
+                        priority = Priority.LOW;
+                    }
+                }
+            });
+        });
+
         calendarView.setOnDateChangeListener((view12, year, month, dayOfMonth) -> {
             calendar.clear();
             calendar.set(year, month, dayOfMonth);
